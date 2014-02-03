@@ -1,0 +1,13 @@
+Source: isolate
+Section: misc
+Priority: optional
+Maintainer: Ed Swierk <eswierk@cs.stanford.edu>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.8.4
+
+Package: isolate
+Architecture: any
+Depends: ${shlibs:Depends}, libc6, udev, procps, iproute, iptables, openssh-server, resolvconf, dnsmasq-base
+Description: Run a process in an isolated environment
+ This package provides a tool for running a process in an isolated
+ environment, using Linux namespaces.

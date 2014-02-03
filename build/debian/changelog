@@ -1,0 +1,5 @@
+isolate (1.0.2) unstable; urgency=low
+
+  * Initial release.
+
+ -- Ed Swierk <eswierk@cs.stanford.edu>  Wed, 12 Mar 2014 14:39:02 -0700

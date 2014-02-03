@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# Copyright 2013, 2014 Big Switch Networks, Inc.
+# Copyright 2014 Skyport Systems, Inc.
+#
+
+pid1=$1
+
+shopt -s extglob
+# Serialize execution of isolate-pre and isolate-post to avoid race
+# conditions when finding an unused IP address pair
+exec 200<$0
+flock 200
+
+source /run/isolate${pid1}.conf
+
+kill $(cat /run/isolate${pid1}-dnsmasq.pid)
+
+# Delete iptables rules that were set by isolate-pre
+iptables -D FORWARD -i ${dev0} -j ACCEPT
+iptables -D FORWARD -o ${dev0} -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -t nat -D POSTROUTING -s ${ip1}/32 -j MASQUERADE
+
+rm -f /run/isolate${pid1}.conf /run/isolate${pid1}-dnsmasq.pid /run/isolate${pid1}-dnsmasq.log

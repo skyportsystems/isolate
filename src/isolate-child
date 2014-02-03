@@ -1,0 +1,61 @@
+#!/bin/bash
+#
+# Copyright 2013, 2014 Big Switch Networks, Inc.
+# Copyright 2014 Skyport Systems, Inc.
+#
+
+pid1=$1
+root=${2%/}
+
+[ ! "${root}" ] || { echo "$0: not for chroot" >&2; exit 1; }
+
+shopt -s extglob
+
+source /run/isolate${pid1}.conf
+
+# Mount container-private filesystems
+mount -n -t proc proc /proc
+mount -n -t sysfs sysfs /sys
+mount -n -t tmpfs none /run
+: >/run/utmp
+chmod 664 /run/utmp
+chgrp utmp /run/utmp
+mkdir /run/lock
+chmod 1777 /run/lock
+
+# Enable loopback interface
+ip link set lo up
+
+# Set the IP address of our end of the veth pair
+ip addr add ${ip1}/31 dev ${dev1}
+ip link set ${dev1} up
+
+# Add default route
+ip route add to default via ${ip0}
+
+# Include (isoN) in the shell prompt
+touch /etc/debian_chroot
+x=$(cat /etc/debian_chroot)
+echo "${x:+$x:}${dev1}" >/run/debian_chroot
+mount -n --bind /run/debian_chroot /etc/debian_chroot
+
+# Make a private copy of /etc/hosts with only localhost mapped to
+# 127.0.0.1, and the real hostname mapped to the parent
+echo "127.0.0.1 localhost" >/run/isolate_hosts
+echo "${ip0} $(hostname)" >>/run/isolate_hosts
+grep -v '^127\.0\.' /etc/hosts >>/run/isolate_hosts
+mount -n --bind /run/isolate_hosts /etc/hosts
+
+# Make a private copy of /etc/mtab since we're in a mount namespace
+cp /etc/mtab /run/isolate_mtab
+mount -n --bind /run/isolate_mtab /etc/mtab
+
+# Make a private resolv.conf that points to the parent dnsmasq
+mkdir /run/resolvconf
+echo "nameserver ${ip0}" >/run/resolvconf/resolv.conf
+[ "$(domainname)" = "(none)" ] && d=localdomain || d=$(domainname)
+echo "search $d" >>/run/resolvconf/resolv.conf
+
+# Start an SSH server
+mkdir /run/sshd
+/usr/sbin/sshd
