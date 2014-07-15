@@ -12,5 +12,5 @@ override_dh_auto_install:
 	cp ../src/isolate-child ../src/isolate-post ../src/isolate-pre $(INSTALL_DIR)/usr/share/isolate/
 	chmod +x $(INSTALL_DIR)/usr/share/isolate/*
 	gcc -W -Wall -g -o $(INSTALL_DIR)/usr/bin/isolate ../src/isolate.c
-	cp ../src/issh $(INSTALL_DIR)/usr/bin/issh
-	chmod +x $(INSTALL_DIR)/usr/bin/issh
+	cp ../src/issh ../src/iscp $(INSTALL_DIR)/usr/bin/
+	chmod +x $(INSTALL_DIR)/usr/bin/issh $(INSTALL_DIR)/usr/bin/iscp
