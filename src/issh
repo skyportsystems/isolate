@@ -1,2 +1,2 @@
 #!/bin/bash
-exec ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "$@"
+exec ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o RequestTTY=force -o EscapeChar=none -o ServerAliveInterval=60 "$@"
